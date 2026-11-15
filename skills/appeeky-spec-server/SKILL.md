@@ -72,6 +72,7 @@ grep -oE '^[A-Z_]+=.' .env | cut -d= -f1    # names that have a value
 | `DAILY_AT` (`0 6 * * *`), `PUSH_EVERY` (`*/15 * * * *`, `off` to push by hand), `WEEKLY_AT` (off, e.g. `0 7 * * 1`) | cron times, UTC |
 | `PUSH_DRY_RUN=1` | `push` only shows what it would change, sends nothing |
 | `HEALTHCHECK_URL` | e.g. a healthchecks.io ping URL; `daily` pings it on success, `<url>/fail` on failure |
+| `ALERT_WEBHOOK_URL` | a Slack (or Slack-compatible) incoming webhook; `daily` posts new alerts to it once each. With `GITHUB_TOKEN` it also keeps one issue labelled `appeeky-spec-alert` (needs Issues: Read and write; `ALERT_ISSUE=0` turns that off) |
 | `CLAUDE_CODE_OAUTH_TOKEN` or `ANTHROPIC_API_KEY` | `weekly` only: the person runs `claude setup-token` on their computer (Claude Pro/Max plan), or an API key billed per use |
 | `APPEEKY_SPEC_IMAGE` | read by compose: `ghcr.io/appeeky/appeeky-spec:latest-agent` for `weekly`, or a pinned tag |
 | `FAL_KEY` | render UGC clips on their own fal account instead of Appeeky credits |

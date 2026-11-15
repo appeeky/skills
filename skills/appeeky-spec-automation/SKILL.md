@@ -1,6 +1,6 @@
 ---
 name: appeeky-spec-automation
-description: Run Appeeky Spec unattended and fix it when a run fails. Covers `init --ci` and its three GitHub workflows (pull request check, push on merge, daily refresh), the repository secrets they need, the pull request report, cron or other CI, and scheduling the weekly co-founder review. Use when asked to set up CI or GitHub Actions for the listing, "push on merge", a daily job, run Spec with cron, GitLab or other CI, schedule the weekly review, which secrets to add, or why a listing workflow, push or daily run failed. For the review itself use appeeky-spec-cofounder; for a VM, Docker or Railway, Fly and Render use appeeky-spec-server; for first-time spec setup use appeeky-spec.
+description: Run Appeeky Spec unattended and fix it when a run fails. Covers `init --ci` and its three GitHub workflows (pull request check, push on merge, daily refresh), the repository secrets they need, the pull request report, the daily alerts (one GitHub issue, a Slack webhook), cron or other CI, and scheduling the weekly co-founder review. Use when asked to set up CI or GitHub Actions for the listing, "push on merge", a daily job, alerts or a notification when ranks, ratings or the category drop, run Spec with cron, GitLab or other CI, schedule the weekly review, which secrets to add, or why a listing workflow, push or daily run failed. For the review itself use appeeky-spec-cofounder; for a VM, Docker or Railway, Fly and Render use appeeky-spec-server; for first-time spec setup use appeeky-spec.
 metadata:
   version: 1.0.0
 ---
@@ -28,7 +28,7 @@ Run commands as `npx @appeeky/spec <command>`. Start every setup or diagnosis wi
 | --- | --- | --- |
 | `listing-check.yml` | `pull_request` | the `appeeky/spec@v0` action: `report --base origin/<base>`, comments it, fails on check errors |
 | `listing-push.yml` | push to `main` touching `appeeky/store/**`, `appeeky.spec.yaml`, `appeeky/reviews/replies/**`, `appeeky/social/drafts/**`, `appeeky/ugc/briefs/**` | `push --yes --note "<merge commit message>"`, `reviews push --yes`, `social push --yes`, `ugc generate --yes` (`--local` with `FAL_KEY`), then commits the release and sent markers |
-| `listing-daily.yml` | `0 6 * * *` UTC and manual | `category pull`, `visibility pull`, `verify --playbook`, `reviews pull`, `competitors pull`, `social pull`, `ugc pull`; with keys also `seo pull`, `search-ads pull`, `seo ranks --every`, `visibility scan --local --every`; then commits |
+| `listing-daily.yml` | `0 6 * * *` UTC and manual | `category pull`, `visibility pull`, `verify --playbook`, `reviews pull`, `competitors pull`, `social pull`, `ugc pull`; with keys also `seo pull`, `search-ads pull`, `seo ranks --every`, `visibility scan --local --every`; then `alerts --record`, commits, and keeps the alert issue (`issues: write`) |
 
 2. Secrets: tell the user which to add under Settings → Secrets and variables → Actions. Never ask them to paste one into chat, and never write one into a file.
 
@@ -50,7 +50,19 @@ The push workflow reads `APPEEKY_API_KEY`, or your own store keys from secrets o
 
 `listing-check.yml` (or any workflow using `appeeky/spec@v0` after `actions/checkout@v4` with `fetch-depth: 0`) posts one comment, edited on each run: listing changes, check results, coverage before → after, and the replies, posts and clips the merge sends out. Action inputs: `working-directory` (folder with the spec), `base`, `comment` (`"false"` to skip), `version`, `github-token`. The same Markdown locally: `report --base main` (`-o <file>` to save it). It needs `pull-requests: write`.
 
-## 3. The weekly co-founder review
+## 3. Alerts
+
+`alerts` turns the files the daily run wrote into what needs a person: `rank-drop` (from the ranks in `appeeky/releases/`), `release-lost`, `category-drop`, `low-ratings`, `competitor-change` (on targets only), `visibility-drop`, `search-drop` (`appeeky/seo/daily.csv`) and `late-check`. Each has `severity` (`warn`/`critical`), `numbers`, `window`, `source` and `next`. It makes no network call except the delivery flags.
+
+- Read them: `alerts --json` (`--new` for the ones not reported yet). `--markdown -o <file>` writes an issue body; the file is empty when nothing is open.
+- Dedupe: `--record` writes `appeeky/alerts.json`; the daily run commits it, so an alert is new once, again when it turns critical, and again only after it cleared and came back. Never hand-edit it; delete it to report everything again.
+- Thresholds: `alerts:` in `appeeky.spec.yaml` (`rank-drop.places`, `category-drop.places`/`days`, `low-ratings.days`/`min`/`ratio`, `search-drop.days`/`drop`/`min`, `competitor-change.days`, `visibility-drop.days`, `release-lost.days`, `late-check.days`), `off: [<kind>]` to turn kinds off. Too noisy: raise a threshold or turn the kind off in a pull request, not by deleting the state file.
+- GitHub: `listing-daily.yml` runs `alerts --new -o .appeeky/alerts-new.md` and `alerts --record -o .appeeky/alerts.md`, then with `gh` keeps one open issue labelled `appeeky-spec-alert` (body: every open alert; a comment with the new ones; closed when the file is empty). A `listing-daily.yml` from an older version has neither the steps nor `issues: write`: delete it and run `init --ci` again (doctor's `alerts` line says so).
+- Docker `daily`: `alerts --record`, plus `--webhook` when `ALERT_WEBHOOK_URL` is set (Slack-compatible `{"text"}`, new alerts only) and `--issue` when `GITHUB_TOKEN` is set (same issue through the GitHub API; needs Issues: Read and write; `ALERT_ISSUE=0` skips it). A failed post is not recorded and is retried the next day. `! GitHub answered 403 … Issues: Read and write` in the log: add that permission to the token or set `ALERT_ISSUE=0`.
+- Other CI or cron: `alerts --record --webhook` (and `--issue` with `GITHUB_TOKEN`) after the daily commands, then commit `appeeky/alerts.json`.
+- The weekly agent may run `alerts --json` but never `--webhook` or `--issue`; the routines deny them.
+
+## 4. The weekly co-founder review
 
 1. `npx @appeeky/spec agents install` (`--for opencode` or `all`) writes `.claude/agents/appeeky-*.md` and `.claude/commands/appeeky-cofounder.md`; commit them. Or copy `github.com/appeeky/spec/examples/weekly/propose.md` to `.github/appeeky-propose.md` to keep an own version; the routines prefer it.
 2. Pick the runner:
@@ -60,11 +72,11 @@ The push workflow reads `APPEEKY_API_KEY`, or your own store keys from secrets o
 3. Agent credentials, one of: `CLAUDE_CODE_OAUTH_TOKEN` (the user runs `claude setup-token` once; billed to their Claude Pro or Max plan) or `ANTHROPIC_API_KEY` (per use). Optional: `PROPOSAL_TOKEN` (a fine-grained or GitHub App token with contents and pull requests write), because a PR opened with the default `GITHUB_TOKEN` does not trigger `listing-check.yml`; `ATTRIBUTION_TOKEN` for a self-hosted attribution server.
 4. Each routine refreshes `data`, `reviews`, `competitors`, `social`, `ugc`, reads `status --json` for the free stores, runs the review with an allow-list (`appeeky-spec *`, `git log`, `git tag`, file tools) and a deny-list (`push`, `revert`, `reviews push`, `social push|reply|hide|like|delete-comment`, `ugc generate --yes`, paid `--yes` scans), then opens `listing/weekly-<date>` with `.appeeky/proposal.md` as the body. Never loosen those lists.
 
-## 4. On a server
+## 5. On a server
 
 The same routines run from the Docker image on a VM or container host (daily, push, weekly, schedule; `.env`, `PUSH_DRY_RUN`, `HEALTHCHECK_URL`). Setting it up, operating it and its failures: see appeeky-spec-server. The failure messages below are the same there.
 
-## 5. Diagnose a failed run
+## 6. Diagnose a failed run
 
 1. Read the log: `gh run view <id> --log-failed`, `docker compose logs`, or `.appeeky/weekly.log`. Run `doctor --json` with the same env.
 2. Match the message:

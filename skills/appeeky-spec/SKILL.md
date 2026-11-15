@@ -23,6 +23,7 @@ The app's store listings live in files, and every push is recorded and measured.
 | `appeeky/visibility/<country>.yaml` | whether ChatGPT, Claude, Gemini and Perplexity name the app per intent, who they name instead, the pages they cite, suggested fixes; `changes.md` beside it (`history.csv` and `answers/` with `--local` scans) |
 | `appeeky/seo/` | Google Search Console for the app's website: `daily.csv`, `queries.csv`, `pages.csv`, `summary.md` (`seo pull`) |
 | `appeeky/category.csv` | rank in the category chart (top 100), one row a day |
+| `appeeky/alerts.json` | written by `alerts --record`: the alerts already reported (run `alerts --json` for what needs attention now) |
 | `.appeeky/data/*.csv` (or `appeeky/data/`) | analytics, Search Ads, RevenueCat, Meta and TikTok per day; `README.md` says what each file holds |
 
 Run commands as `npx @appeeky/spec <command> --json` (or `appeeky-spec` when installed). Add `-C <dir>` when the spec is not in the current folder.
@@ -98,7 +99,7 @@ For "what should we do this week" or a scheduled run, follow appeeky-spec-cofoun
 | Pricing and other experiments | appeeky-spec-experiments |
 | AI assistants and the category chart | appeeky-spec-visibility |
 | The app's website in Google | appeeky-spec-seo |
-| GitHub Actions, other CI, cron | appeeky-spec-automation |
+| GitHub Actions, other CI, cron, alerts (the issue, the webhook) | appeeky-spec-automation |
 | A VM or container host | appeeky-spec-server |
 
 Docs: https://docs.appeeky.com/docs/spec

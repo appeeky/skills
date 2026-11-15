@@ -1,6 +1,6 @@
 ---
 name: appeeky-spec-cofounder
-description: Run the weekly growth review (the co-founder review) in an Appeeky Spec repo as one agent, without subagents, in Codex, Cursor, Gemini CLI, opencode or Claude Code. It checks which stores are free to change, refreshes reviews, competitors, data, social and UGC, works through the ASO, reviews, ads, releases, UGC and social checklists, picks at most one listing change, writes the brief to appeeky/briefs/, drafts posts and a UGC brief, and prepares the pull request. Use when asked "what should we do this week?", for the weekly growth or ASO review, the co-founder review, /appeeky-cofounder, a growth brief, or "propose this week's listing change". To schedule it, see appeeky-spec-automation; to judge one past release, see appeeky-spec-review; for a single listing edit, use appeeky-spec.
+description: Run the weekly growth review (the co-founder review) in an Appeeky Spec repo as one agent, without subagents, in Codex, Cursor, Gemini CLI, opencode or Claude Code. It reads the open alerts first, checks which stores are free to change, refreshes reviews, competitors, data, social and UGC, works through the ASO, reviews, ads, releases, UGC and social checklists, picks at most one listing change, writes the brief to appeeky/briefs/, drafts posts and a UGC brief, and prepares the pull request. Use when asked "what should we do this week?", for the weekly growth or ASO review, the co-founder review, /appeeky-cofounder, a growth brief, or "propose this week's listing change". To schedule it, see appeeky-spec-automation; to judge one past release, see appeeky-spec-review; for a single listing edit, use appeeky-spec.
 metadata:
   version: 1.0.0
 ---
@@ -15,9 +15,10 @@ If the run starts with "Today is <date>. Stores free to change: …", a schedule
 
 ## 1. Where things stand
 
-1. `status --json` → `{ loops, free }`. Only stores in `free` may get a listing change; the others have a release still being measured. It also rewrites `appeeky/loops.md`.
-2. Read `appeeky/loops.md` (warnings name competitor moves inside a release's window), `appeeky/playbook.md` (what won and lost) and the newest file in `appeeky/briefs/`, if any.
-3. `log --json` for recent releases and their notes.
+1. `alerts --json` → `{ alerts }`: what needs attention now (rank, category, rating, Search Console and AI visibility drops, lost releases, competitor moves on targets, late checks), each with numbers, source file and next step. Read them first; every critical one goes into the brief under Where we stand, with its next step. Never run it with `--webhook`, `--issue` or `--record`; the daily run delivers them.
+2. `status --json` → `{ loops, free }`. Only stores in `free` may get a listing change; the others have a release still being measured. It also rewrites `appeeky/loops.md`.
+3. Read `appeeky/loops.md` (warnings name competitor moves inside a release's window), `appeeky/playbook.md` (what won and lost) and the newest file in `appeeky/briefs/`, if any.
+4. `log --json` for recent releases and their notes.
 
 ## 2. Refresh what you read
 
@@ -65,6 +66,7 @@ Pick exactly one listing change for a store in `free`, the one with the stronges
 ```markdown
 # Growth brief 2026-11-16
 ## Where we stand
+<open alerts (critical first) and what each needs; what is being measured and when it is checked>
 ## What the specialists found
 ### ASO / Reviews / Ads / Releases / UGC / Social   (a few lines each, with numbers and files)
 ## The change
@@ -108,7 +110,7 @@ After the merge, the push workflow (or the docker push routine) runs `push`, `re
 
 ## Never run
 
-`push`, `revert`, `pull`, `reviews push`, `social push`, `social reply`, `social hide`, `social like`, `social delete-comment`, `ugc generate` without `--dry-run`, `visibility scan --local --yes`, `seo ranks|keywords|domain … --yes`, `experiment add` or `experiment close`. Never put keys or tokens in any file.
+`push`, `revert`, `pull`, `reviews push`, `social push`, `social reply`, `social hide`, `social like`, `social delete-comment`, `ugc generate` without `--dry-run`, `visibility scan --local --yes`, `seo ranks|keywords|domain … --yes`, `alerts --webhook|--issue|--record`, `experiment add` or `experiment close`. Never put keys or tokens in any file.
 
 ## Mistakes to avoid
 
