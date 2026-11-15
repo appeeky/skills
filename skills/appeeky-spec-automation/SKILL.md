@@ -18,7 +18,7 @@ Run commands as `npx @appeeky/spec <command>`. Start every setup or diagnosis wi
 | GitHub Actions | `init --ci`; the default |
 | A server (VM, Railway, Fly, Render) or a scheduler you already have (Cloud Run Jobs, Railway cron) | the Docker image; see appeeky-spec-server |
 | Other CI (GitLab, Bitbucket, CircleCI) | the same three triggers and commands as the workflows below |
-| The user's machine | `examples/weekly/weekly.sh` with cron or launchd (weekly review) |
+| The user's machine | `github.com/appeeky/spec/examples/weekly/weekly.sh` with cron or launchd (weekly review) |
 
 ## 2. GitHub Actions
 
@@ -26,7 +26,7 @@ Run commands as `npx @appeeky/spec <command>`. Start every setup or diagnosis wi
 
 | File | Trigger | Runs |
 | --- | --- | --- |
-| `listing-check.yml` | `pull_request` | the `appeeky/appeeky-spec@v0` action: `report --base origin/<base>`, comments it, fails on check errors |
+| `listing-check.yml` | `pull_request` | the `appeeky/spec@v0` action: `report --base origin/<base>`, comments it, fails on check errors |
 | `listing-push.yml` | push to `main` touching `appeeky/store/**`, `appeeky.spec.yaml`, `appeeky/reviews/replies/**`, `appeeky/social/drafts/**`, `appeeky/ugc/briefs/**` | `push --yes --note "<merge commit message>"`, `reviews push --yes`, `social push --yes`, `ugc generate --yes` (`--local` with `FAL_KEY`), then commits the release and sent markers |
 | `listing-daily.yml` | `0 6 * * *` UTC and manual | `category pull`, `visibility pull`, `verify --playbook`, `reviews pull`, `competitors pull`, `social pull`, `ugc pull`; with keys also `seo pull`, `search-ads pull`, `seo ranks --every`, `visibility scan --local --every`; then commits |
 
@@ -48,14 +48,14 @@ The push workflow reads `APPEEKY_API_KEY`, or your own store keys from secrets o
 
 ### The pull request report
 
-`listing-check.yml` (or any workflow using `appeeky/appeeky-spec@v0` after `actions/checkout@v4` with `fetch-depth: 0`) posts one comment, edited on each run: listing changes, check results, coverage before → after, and the replies, posts and clips the merge sends out. Action inputs: `working-directory` (folder with the spec), `base`, `comment` (`"false"` to skip), `version`, `github-token`. The same Markdown locally: `report --base main` (`-o <file>` to save it). It needs `pull-requests: write`.
+`listing-check.yml` (or any workflow using `appeeky/spec@v0` after `actions/checkout@v4` with `fetch-depth: 0`) posts one comment, edited on each run: listing changes, check results, coverage before → after, and the replies, posts and clips the merge sends out. Action inputs: `working-directory` (folder with the spec), `base`, `comment` (`"false"` to skip), `version`, `github-token`. The same Markdown locally: `report --base main` (`-o <file>` to save it). It needs `pull-requests: write`.
 
 ## 3. The weekly co-founder review
 
-1. `npx @appeeky/spec agents install` (`--for opencode` or `all`) writes `.claude/agents/appeeky-*.md` and `.claude/commands/appeeky-cofounder.md`; commit them. Or copy `examples/weekly/propose.md` to `.github/appeeky-propose.md` to keep an own version; the routines prefer it.
+1. `npx @appeeky/spec agents install` (`--for opencode` or `all`) writes `.claude/agents/appeeky-*.md` and `.claude/commands/appeeky-cofounder.md`; commit them. Or copy `github.com/appeeky/spec/examples/weekly/propose.md` to `.github/appeeky-propose.md` to keep an own version; the routines prefer it.
 2. Pick the runner:
-   - GitHub: copy `examples/weekly/appeeky-spec-weekly.yml` to `.github/workflows/` (Mondays `0 7 * * 1`, and manual).
-   - The user's machine: `examples/weekly/weekly.sh`, e.g. crontab `0 7 * * 1  cd /path/to/app-repo && sh weekly.sh >> .appeeky/weekly.log 2>&1`. Needs git with push access, `gh` logged in, Node 20+, `claude`.
+   - GitHub: copy `github.com/appeeky/spec/examples/weekly/appeeky-spec-weekly.yml` to `.github/workflows/` (Mondays `0 7 * * 1`, and manual).
+   - The user's machine: `github.com/appeeky/spec/examples/weekly/weekly.sh`, e.g. crontab `0 7 * * 1  cd /path/to/app-repo && sh weekly.sh >> .appeeky/weekly.log 2>&1`. Needs git with push access, `gh` logged in, Node 20+, `claude`.
    - Docker: `WEEKLY_AT=0 7 * * 1` with `APPEEKY_SPEC_IMAGE=ghcr.io/appeeky/appeeky-spec:latest-agent`.
 3. Agent credentials, one of: `CLAUDE_CODE_OAUTH_TOKEN` (the user runs `claude setup-token` once; billed to their Claude Pro or Max plan) or `ANTHROPIC_API_KEY` (per use). Optional: `PROPOSAL_TOKEN` (a fine-grained or GitHub App token with contents and pull requests write), because a PR opened with the default `GITHUB_TOKEN` does not trigger `listing-check.yml`; `ATTRIBUTION_TOKEN` for a self-hosted attribution server.
 4. Each routine refreshes `data`, `reviews`, `competitors`, `social`, `ugc`, reads `status --json` for the free stores, runs the review with an allow-list (`appeeky-spec *`, `git log`, `git tag`, file tools) and a deny-list (`push`, `revert`, `reviews push`, `social push|reply|hide|like|delete-comment`, `ugc generate --yes`, paid `--yes` scans), then opens `listing/weekly-<date>` with `.appeeky/proposal.md` as the body. Never loosen those lists.
