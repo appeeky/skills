@@ -1,8 +1,8 @@
 ---
 name: appeeky-spec-targets
-description: Choose and prioritize the searches an app should be found for (the `targets` in appeeky.spec.yaml), from personas, competitors and keyword popularity. Use when asked which keywords to target, to do keyword research, to fill or clean up targets, to define personas, or to react to a competitor changing its title or subtitle.
+description: Choose and prioritize the searches an app should be found for (the `targets` in appeeky.spec.yaml), from personas, competitors and keyword popularity. Use when asked which keywords to target, to do keyword research, to fill or clean up targets, to define personas, or to react to a competitor changing its title.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # Choose targets with Appeeky Spec

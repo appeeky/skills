@@ -1,8 +1,8 @@
 ---
 name: appeeky-spec-visibility
-description: Get an app named when people ask ChatGPT, Claude, Gemini or Perplexity for an app like it, get its website found in Google, and track its category chart rank, in an Appeeky Spec repo. Use when asked about AI visibility, AI search, LLM or GEO/AEO recommendations, "does ChatGPT recommend us", which questions to track, why a competitor is named instead, SEO for the app's website, Search Console, llms.txt, or how the app ranks in its category.
+description: Get an app named when people ask ChatGPT, Claude, Gemini or Perplexity for an app like it, and track its category chart rank, in an Appeeky Spec repo. Use when asked about AI visibility, AI search, LLM or GEO/AEO recommendations, "does ChatGPT recommend us", which questions to track, why a competitor is named instead, or how the app ranks in its category. For the app's website in Google (seo check, llms.txt, Search Console) see appeeky-spec-seo.
 metadata:
-  version: 1.0.0
+  version: 1.1.0
 ---
 
 # AI visibility and category rank with Appeeky Spec
@@ -71,25 +71,9 @@ Never write fake reviews, posts or comments, and never make claims the app does 
 
 `visibility scan` costs money: AI Visibility credits, or with `--local` the user's own provider accounts. Run it only when the user asks. `visibility scan --local --dry-run` shows the prompts, the assistants and the cost and asks nothing; that one is always fine. On a schedule, the daily routine runs `visibility scan --local --every <days>` when the user set `VISIBILITY_EVERY`.
 
-## The app's website: Google and AI assistants
+## The app's website
 
-Set `web.url` in `appeeky.spec.yaml` (and `web.searchConsole` when the Search Console property is not the domain).
-
-- `seo check` reads the site the way a crawler does, with no key: title, description, canonical, sitemap and noindex for Google; store links, the Smart App Banner and app structured data for the app; and for AI assistants whether robots.txt lets their crawlers in (GPTBot, OAI-SearchBot, ClaudeBot, PerplexityBot, Google-Extended and others), whether there is an llms.txt, how much text is readable without JavaScript, and how many target keywords the page uses. Each finding has a fix.
-- `seo llms --out public/llms.txt` writes llms.txt from the listing. Propose it in the website's repo when the check says it is missing.
-- `seo pull` reads Google Search Console with the user's own service account (`GSC_CREDENTIALS`: the JSON key or its path; the service account's email must be a user of the property). It writes `appeeky/seo/daily.csv` (clicks and impressions per day, kept), `queries.csv` and `pages.csv` (last 28 days), and `summary.md`: the trend, top queries, queries close to the top (position 4–15) and queries with the store target keywords.
-
-`verify` reads `search_clicks` and `search_impressions` per day from `daily.csv`. Search Console lags two days.
-
-On the user's own DataForSEO account (`DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD`), for `web.keywords.<country>` or the store targets:
-
-- `seo ranks` → `appeeky/seo/ranks.csv` and `ranks.md`: the site's Google position, where the app's store page ranks on Google, and whether the AI Overview shows and cites the site, per keyword. `changes.md` gets keywords entering or leaving the top 10. `verify` reads `web_rank` (lower is better) and `ai_overview_citations`.
-- `seo keywords` → `appeeky/seo/keywords.csv`: volume, difficulty, CPC, intent, plus related ideas (`tracked: no`). High-volume, low-difficulty ideas are candidates for `web.keywords` and, when people would search the store for them too, for store `targets`.
-- `seo domain` → `appeeky/seo/domain.md` and `ranked-keywords.csv`: what the site ranks for and which sites compete for the same searches.
-
-They cost money. Run them with `--dry-run` freely, and without it only when the user asks; the daily routine checks ranks on its own.
-
-Read them together: a query people search on Google is a phrase they may also ask an assistant, and a good intent or target. A page that ranks in Google is a page the assistants can cite. When `visibility` shows the assistants cite competitors' pages for an intent and `seo check` shows the site is thin or blocks AI crawlers, the website is the fix, and it is the user's website change, proposed as a list or in that repo, not a listing push.
+The assistants read web pages when they pick an app, so a clear website helps them too. Checking the site, `llms.txt`, Search Console and Google ranks: see appeeky-spec-seo.
 
 ## Category rank
 
