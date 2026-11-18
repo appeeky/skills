@@ -46,13 +46,20 @@ Good prompts:
 | Field | Meaning |
 | --- | --- |
 | `summary` | intents by status: `winning` (named in 25%+ of answers), `weak`, `missing`, `noData` (not scanned yet) |
+| `overall` | across every answer of the last 30 days (of the scan with `--local`), 0–100: `visibility` is the share of answers that name the app, `shareOfVoice` its share of every app the answers name, `winRate` the share that put it first; `position` is its mean rank where the answer gave an order, `rank` its place among the apps named, `previous` the 30 days before |
+| `apps` | the apps the assistants name most across every intent, with the same numbers; `you: true` is this app |
 | `intents[].you` | share of answers that name the app, averaged over the assistants, 0–100 |
 | `intents[].byModel` | the same per assistant: one assistant can name you while another never does |
 | `intents[].namedInstead` | who the assistants name instead, with their share |
-| `sources` | pages the assistants cite (mostly Perplexity), most cited first; `yours: true` is the app's own site |
+| `sources` | sites the assistants cite, most cited first; `yours: true` is the app's own site. From Appeeky also `type` (`owner`, `app_store`, `ugc`, `review`, `editorial`, `reference`, `other`), `names` (the apps named in the answers that cite it) and `gap: true`: cited for other apps and never for this one |
+| `searches` | what the assistants searched the web for before answering, most repeated first (ChatGPT, Claude and Gemini report it) |
 | `fixes` | open suggestions from Appeeky for an intent |
 
-`appeeky/visibility/changes.md` keeps what moved between pulls: an intent that went from `missing` to `winning`, or the app's site starting to be cited.
+`overall`, `apps` and `searches` are missing when there is nothing to report yet; `type`, `names` and `gap` come only from Appeeky.
+
+High `visibility` with a low `shareOfVoice` means the app is named, in long lists next to many others. A low `winRate` with a good `visibility` means it is named and rarely first.
+
+`appeeky/visibility/changes.md` keeps what moved between pulls: an intent that went from `missing` to `winning`, the app's site starting to be cited, or a new site cited for other apps only.
 
 ### Improve it
 
@@ -60,8 +67,9 @@ Assistants repeat what the web says about an app. In order of what you can chang
 
 1. **The listing.** The first lines of the description and the subtitle should say what the app does in the intent's words ("rain sounds for sleep", not "an immersive audio experience"). This is a normal listing change: propose it in a pull request and measure it like any release (see appeeky-spec).
 2. **The app's own website.** A page per main use case, in plain words, with the app's name and store links. When `sources` shows the assistants cite pages like it from competitors, the same kind of page is the gap.
-3. **Cited third-party pages.** `sources` lists them: review sites, Reddit threads, "best apps for…" articles. Tell the user which ones name the competitors in `namedInstead` but not the app. Getting listed there is the user's outreach, not something to fake.
-4. **`fixes`.** Read each one. Propose the ones that are listing or website edits; summarize the rest for the user.
+3. **Cited third-party pages.** `sources` lists them: review sites, Reddit threads, "best apps for…" articles. Start with `gap: true`: the assistants cite those for the apps in `names` and never for this one. Without `gap` (a local scan), tell the user which ones name the competitors in `namedInstead` but not the app. Getting listed there is the user's outreach, not something to fake.
+4. **`searches`.** These are the words the assistants type into a search engine for the user's question. A page that ranks for them is a page they can cite. Use them as wording for the website's pages and the description, and as candidates for `web.keywords`.
+5. **`fixes`.** Read each one. Propose the ones that are listing or website edits; summarize the rest for the user.
 
 Never write fake reviews, posts or comments, and never make claims the app does not live up to. Assistants also read those.
 
